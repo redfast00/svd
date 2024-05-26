@@ -6,6 +6,31 @@ on:
       - main
 
 jobs:
+  xmllint:
+    runs-on: ubuntu-latest
+    steps:
+      # Check out this repository
+      - uses: actions/checkout@v2
+
+      - name: Install xmllint
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxml2-utils
+
+      - name: Get SVD schema
+        run: |
+          curl -o CMSIS-SVD.xsd https://raw.githubusercontent.com/ARM-software/CMSIS_5/develop/CMSIS/Utilities/CMSIS-SVD.xsd
+
+      - name: Check all SVD files against schema
+        shell: bash
+        run: |
+          exit_status=0
+          for svd in ./svd/*.svd; do
+            xmllint --noout --schema CMSIS-SVD.xsd $svd || exit_status=$?
+          done
+          exit $exit_status
+
+
   release:
     runs-on: ubuntu-latest
     steps:
